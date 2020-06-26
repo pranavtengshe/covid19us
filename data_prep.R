@@ -13,6 +13,6 @@ County_Covid_Counts_agg= County_Covid_Counts %>%
   mutate(totalcases= sum(cases), totaldeaths= sum(deaths)) %>%
   arrange(date) %>% 
   mutate( rrate= mean(cases/lag(cases), na.rm=T )) %>% 
-  select (fips, totalcases,totaldeaths,rrate)
+  distinct (fips, totalcases,totaldeaths,rrate)
 
 View(County_Covid_Counts_agg)
