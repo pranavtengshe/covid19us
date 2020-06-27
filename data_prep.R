@@ -181,9 +181,6 @@ County_Covid_Summary= County_Covid_Summary %>%
 
 glimpse(County_Covid_Summary)
 
-indx <- apply(County_Covid_Summary, 2, function(x) any(is.na(x)))
-
-indx
 
 View(County_Covid_Summary)
 
@@ -192,9 +189,10 @@ glimpse(filter(County_Covid_Summary, is.na(svi)))
 for(i in 1:ncol(County_Covid_Summary)){
  
 
-  County_Covid_Summary[[i]]=ifelse(is.na(County_Covid_Summary[[i]]), mean(is.numeric(County_Covid_Summary[[i]]),na.rm = T),is.numeric(County_Covid_Summary[[i]]))
+  County_Covid_Summary[[i]]=ifelse(is.na(County_Covid_Summary[[i]]), mean(as.numeric(County_Covid_Summary[[i]]),na.rm = T),as.numeric(County_Covid_Summary[[i]]))
 }
 
-mean(County_Covid_Summary[['Pop_Without_Internet']], na.rm = T)
 
+indx <- apply(County_Covid_Summary, 2, function(x) any(is.na(x)))
 
+indx
