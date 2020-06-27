@@ -57,9 +57,45 @@ County_Covid_Summary= County_Covid_Summary %>%
   left_join(svi_data, by =c('fips'='countyFIPS'))
 
 
+copd_data= read.csv('Data/Copd.csv', stringsAsFactors = F)
+
+copd_data$Value= as.numeric(ifelse(copd_data$Value=='Suppressed',NA,copd_data$Value ))
+
+copd_data$Value= ifelse(is.na(copd_data$Value), mean(as.numeric(copd_data$Value), na.rm = T),copd_data$Value)
+
+County_Covid_Summary= County_Covid_Summary %>% 
+  left_join(copd_data, by= c('fips'='countyFIPS')) %>% 
+  rename('copd_rate'='Value')
+
+County_Covid_Summary['Data.Comment']= NULL
+    
 
 
+View(Heart_Attack_data)= read.csv('Data/HeartAttack.csv')
+
+Heart_Attack_data$Value= as.numeric(na_if(Heart_Attack_data$Value,'Suppressed'))
+
+Heart_Attack_data$Value= ifelse(is.na(Heart_Attack_data$Value),mean(Heart_Attack_data$Value,na.rm=T),Heart_Attack_data$Value)
 
 
+Heart_Attack_data <- reshape(Heart_Attack_data, v.names = "Value", idvar = "countyFIPS",
+                timevar = "Gender", direction = "wide")
+
+County_Covid_Summary= County_Covid_Summary %>% 
+  left_join(Heart_Attack_data, by= c('fips'='countyFIPS')) %>% 
+  rename(c('Heart_Disease_Male'='Value.Male','Heart_Disease_Female'= 'Value.Female'))
+
+
+Obesity_Data= read.csv('Data/Obesity.csv', stringsAsFactors = F)
+
+Obesity_Data= Obesity_Data[,c('stateFIPS','Value')]
+
+Obesity_Data$Value= gsub('%','',Obesity_Data$Value)
+
+
+County_Covid_Summary= County_Covid_Summary %>% 
+  left_join(Obesity_Data, by=c('STATE'='stateFIPS')) %>% 
+  rename('Obesity_percent'='Value')
+  
 
 
