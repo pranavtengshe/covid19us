@@ -133,6 +133,9 @@ Internet_data = read.csv('Data/PercentwithoutInternet.csv', stringsAsFactors = F
 
 Internet_data = Internet_data[, c('countyFIPS', 'Value')]
 
+Internet_data$Value= as.numeric(ifelse(is.na(Internet_data$Value),mean(as.numeric(Internet_data$Value), na.rm = T),Internet_data$Value))
+
+
 County_Covid_Summary = County_Covid_Summary %>%
   left_join(Internet_data, by = c('fips' = 'countyFIPS')) %>%
   rename('Pop_Without_Internet' = 'Value')
@@ -178,5 +181,20 @@ County_Covid_Summary= County_Covid_Summary %>%
 
 glimpse(County_Covid_Summary)
 
+indx <- apply(County_Covid_Summary, 2, function(x) any(is.na(x)))
+
+indx
+
+View(County_Covid_Summary)
+
+glimpse(filter(County_Covid_Summary, is.na(svi)))
+
+for(i in 1:ncol(County_Covid_Summary)){
+ 
+
+  County_Covid_Summary[[i]]=ifelse(is.na(County_Covid_Summary[[i]]), mean(is.numeric(County_Covid_Summary[[i]]),na.rm = T),is.numeric(County_Covid_Summary[[i]]))
+}
+
+mean(County_Covid_Summary[['Pop_Without_Internet']], na.rm = T)
 
 
