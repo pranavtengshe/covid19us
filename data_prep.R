@@ -13,7 +13,7 @@ County_Pop = County_Pop %>%
 
 County_Pop = County_Pop[, c(
   'CountyMIPS',
-  'CTYNAME'
+  'CTYNAME',
   'STATE',
   'STNAME',
   'POPESTIMATE2019',
@@ -43,6 +43,7 @@ County_Covid_Summary['InfectionRatiop1000'] = County_Covid_Summary$totalcases *
 
 
 
+
 State_Testing = read.csv('https://covidtracking.com/api/v1/states/current.csv',
                          stringsAsFactors = F)
 
@@ -51,6 +52,7 @@ State_Testing = State_Testing[, c('fips', 'total', 'positive')]
 State_Testing = State_Testing %>%
   rename('testingtotal' = 'total') %>%
   rename('testedpositive' = 'positive')
+
 
 
 
@@ -69,7 +71,6 @@ svi_data = svi_data[, c('countyFIPS', 'Value')] %>%
 County_Covid_Summary = County_Covid_Summary %>%
   left_join(svi_data, by = c('fips' = 'countyFIPS'))
 
-
 copd_data = read.csv('Data/Copd.csv', stringsAsFactors = F)
 
 copd_data = copd_data[, c('countyFIPS', 'Value')]
@@ -83,6 +84,7 @@ copd_data$Value = ifelse(is.na(copd_data$Value),
 County_Covid_Summary = County_Covid_Summary %>%
   left_join(copd_data, by = c('fips' = 'countyFIPS')) %>%
   rename('copd_rate' = 'Value')
+
 
 
 
@@ -109,6 +111,8 @@ Heart_Attack_data <-
     direction = "wide"
   )
 
+
+
 County_Covid_Summary = County_Covid_Summary %>%
   left_join(Heart_Attack_data, by = c('fips' = 'countyFIPS')) %>%
   rename(c(
@@ -124,9 +128,12 @@ Obesity_Data = Obesity_Data[, c('stateFIPS', 'Value')]
 Obesity_Data$Value = as.numeric(gsub('%', '', Obesity_Data$Value))
 
 
+
 County_Covid_Summary = County_Covid_Summary %>%
   left_join(Obesity_Data, by = c('STATE' = 'stateFIPS')) %>%
   rename('Obesity_percent' = 'Value')
+
+glimpse(County_Covid_Summary)
 
 
 
@@ -141,6 +148,7 @@ County_Covid_Summary = County_Covid_Summary %>%
   left_join(Internet_data, by = c('fips' = 'countyFIPS')) %>%
   rename('Pop_Without_Internet' = 'Value')
 
+
 Traveltime_data = read.csv('Data/Traveltimeinminutes.csv', stringsAsFactors = T)
 
 Traveltime_data = Traveltime_data[, c('countyFIPS', 'Value')]
@@ -148,6 +156,8 @@ Traveltime_data = Traveltime_data[, c('countyFIPS', 'Value')]
 County_Covid_Summary = County_Covid_Summary %>%
   left_join(Traveltime_data, by = c('fips' = 'countyFIPS')) %>%
   rename('CommuteTime_Mins' = 'Value')
+
+select(County_Covid_Summary, fips)
 
 Smoking_data = read.csv('Data/Smoking.csv', stringsAsFactors = T)
 
@@ -172,6 +182,7 @@ County_Covid_Summary = County_Covid_Summary %>%
     )
   )
 
+
 AirQuality_Data= read.csv('Data/airquality.csv', stringsAsFactors = F)
 
 AirQuality_Data= AirQuality_Data[, c('countyFIPS','Value')]
@@ -187,7 +198,9 @@ Mobility_data= Mobility_data[,c('County_Fips','Mobility_Percent')]
 
 Mobility_data$Mobility_Percent= as.numeric(gsub('%','',Mobility_data$Mobility_Percent))
 
-Mobility_data=filter(Mobility_data, (County_Fips)!='#N/A')
+Mobility_data=filter(Mobility_data, (County_Fips)!='#N/A') %>% 
+  group_by(County_Fips) %>% 
+  slice(1)
 
 Mobility_data$County_Fips= as.numeric(Mobility_data$County_Fips)
 
@@ -201,14 +214,19 @@ County_Covid_Summary= County_Covid_Summary %>%
 County_Covid_Summary$Mobility_Percent= ifelse(is.na(County_Covid_Summary$Mobility_Percent), mean(County_Covid_Summary$Mobility_Percent, na.rm = T),County_Covid_Summary$Mobility_Percent)
 
 for(i in 1:ncol(County_Covid_Summary)){
- if (names(County_Covid_Summary[i]) %in% c('STNAME','CTYNAME')) {
+ if (!names(County_Covid_Summary[i]) %in% c('STNAME','CTYNAME')) {
    County_Covid_Summary[[i]]=ifelse(is.na(County_Covid_Summary[[i]]), mean(as.numeric(County_Covid_Summary[[i]]),na.rm = T),as.numeric(County_Covid_Summary[[i]]))
    
  }
 }
 
 
-indx <- apply(County_Covid_Summary, 2, function(x) any(is.na(x)))
+indx <- apply(County_Covid_Summary, 2, function(x) any(is.na(x)| is.infinite(x)))
+
+
+select(County_Covid_Summary, fips)
+
+glimpse(County_Covid_Summary)
 
 
 
