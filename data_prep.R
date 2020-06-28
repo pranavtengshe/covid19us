@@ -13,6 +13,7 @@ County_Pop = County_Pop %>%
 
 County_Pop = County_Pop[, c(
   'CountyMIPS',
+  'CTYNAME'
   'STATE',
   'STNAME',
   'POPESTIMATE2019',
@@ -179,20 +180,36 @@ County_Covid_Summary= County_Covid_Summary %>%
   left_join(AirQuality_Data,by= c('fips'='countyFIPS')) %>% 
   rename('Air_quality_Index'= 'Value')
 
-glimpse(County_Covid_Summary)
 
+Mobility_data= read.csv('Data/Mobility_Data.csv', stringsAsFactors = F)
 
-View(County_Covid_Summary)
+Mobility_data= Mobility_data[,c('County_Fips','Mobility_Percent')]
 
-glimpse(filter(County_Covid_Summary, is.na(svi)))
+Mobility_data$Mobility_Percent= as.numeric(gsub('%','',Mobility_data$Mobility_Percent))
+
+Mobility_data=filter(Mobility_data, (County_Fips)!='#N/A')
+
+Mobility_data$County_Fips= as.numeric(Mobility_data$County_Fips)
+
+County_Covid_Summary= County_Covid_Summary %>% 
+  left_join(Mobility_data, by= c('fips'='County_Fips'))
+
+County_Covid_Summary= County_Covid_Summary %>% 
+  group_by(STATE) %>% 
+  mutate(Mobility_Percent= if_else(is.na(Mobility_Percent),mean(Mobility_Percent,na.rm = T),Mobility_Percent))
+
+County_Covid_Summary$Mobility_Percent= ifelse(is.na(County_Covid_Summary$Mobility_Percent), mean(County_Covid_Summary$Mobility_Percent, na.rm = T),County_Covid_Summary$Mobility_Percent)
 
 for(i in 1:ncol(County_Covid_Summary)){
- 
-
-  County_Covid_Summary[[i]]=ifelse(is.na(County_Covid_Summary[[i]]), mean(as.numeric(County_Covid_Summary[[i]]),na.rm = T),as.numeric(County_Covid_Summary[[i]]))
+ if (names(County_Covid_Summary[i]) %in% c('STNAME','CTYNAME')) {
+   County_Covid_Summary[[i]]=ifelse(is.na(County_Covid_Summary[[i]]), mean(as.numeric(County_Covid_Summary[[i]]),na.rm = T),as.numeric(County_Covid_Summary[[i]]))
+   
+ }
 }
 
 
 indx <- apply(County_Covid_Summary, 2, function(x) any(is.na(x)))
 
-indx
+
+
+
